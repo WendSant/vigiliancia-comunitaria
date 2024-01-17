@@ -1,30 +1,89 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import 'package:vigilanciacomunitaria/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  runApp(MyApp());
+}
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Vigilancia',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+      ),
+      home: MyHomePage(),
+    );
+  }
+}
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 0;
+
+  static final List<Widget> _widgetOptions = <Widget>[
+    Text('Home'),
+    Text('Business'),
+    Text('School'),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Flutter Demo'),
+      ),
+      body: Center(
+        child: _widgetOptions.elementAt(_selectedIndex),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              child: Text('Drawer Header'),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+            ),
+            ListTile(
+              title: Text('Home'),
+              selected: _selectedIndex == 0,
+              onTap: () {
+                Navigator.pop(context);
+                _onItemTapped(0);
+              },
+            ),
+            ListTile(
+              title: Text('Business'),
+              selected: _selectedIndex == 1,
+              onTap: () {
+                Navigator.pop(context);
+                _onItemTapped(1);
+              },
+            ),
+            ListTile(
+              title: Text('School'),
+              selected: _selectedIndex == 2,
+              onTap: () {
+                Navigator.pop(context);
+                _onItemTapped(2);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
