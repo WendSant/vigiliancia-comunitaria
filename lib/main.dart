@@ -11,9 +11,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vigilancia',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
       home: MyHomePage(),
     );
   }
@@ -28,8 +25,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
   static final List<Widget> _widgetOptions = <Widget>[
-    Text('Home'),
     LeafletMapWidget(),
+    Text('Home'),
   ];
 
   void _onItemTapped(int index) {

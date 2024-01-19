@@ -5,8 +5,8 @@
 import FlutterMacOS
 import Foundation
 
-import url_launcher_macos
+import location
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
+  LocationPlugin.register(with: registry.registrar(forPlugin: "LocationPlugin"))
 }
