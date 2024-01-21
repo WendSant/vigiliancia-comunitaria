@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart'
-    show FlutterMap, MapOptions, Marker, MarkerLayer, TileLayer;
+    show FlutterMap, MapController, MapOptions, Marker, MarkerLayer, TileLayer;
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -18,7 +18,8 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
   Future<void>? _userLocationFuture;
   LatLng? _selectedPosition;
   Marker? _tempMarker;
-
+  bool _isAddingMarker = false;
+  final MapController mapController = MapController();
   @override
   void initState() {
     super.initState();
@@ -75,50 +76,63 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
     });
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder(
-        future: _userLocationFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return FlutterMap(
-              options: MapOptions(
-                initialCenter: _currentPosition ?? LatLng(0.0, 0.0),
-                initialZoom: 12,
-                onTap: (tapPosition, point) {
-                  setState(() {
-                    _selectedPosition = point;
-                    _tempMarker = Marker(
-                      width: 80.0,
-                      height: 80.0,
-                      point: point,
-                      child: Icon(Icons.location_on),
-                    );
-                  });
-                  _showModal(point);
-                },
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.app',
-                ),
-                if (_tempMarker != null) MarkerLayer(markers: [_tempMarker!]),
-                CurrentLocationLayer(
-                  followOnLocationUpdate: FollowOnLocationUpdate.always,
-                  positionStream: LocationMarkerDataStreamFactory()
-                      .fromGeolocatorPositionStream(
-                    stream: Geolocator.getPositionStream(),
+      body: Stack(
+        children: [
+          FutureBuilder(
+            future: _userLocationFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: _currentPosition ?? LatLng(0.0, 0.0),
+                    initialZoom: 12,
                   ),
-                ),
-              ],
-            );
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            ); // Loading indicator
-          }
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.app',
+                    ),
+                    CurrentLocationLayer(
+                      followOnLocationUpdate: FollowOnLocationUpdate.always,
+                      positionStream: LocationMarkerDataStreamFactory()
+                          .fromGeolocatorPositionStream(
+                        stream: Geolocator.getPositionStream(),
+                      ),
+                    ),
+                  ],
+                );
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                ); // Loading indicator
+              }
+            },
+          ),
+          if (_isAddingMarker)
+            Center(
+              child: Icon(Icons.location_on, size: 50),
+            ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _isAddingMarker = !_isAddingMarker;
+            if (!_isAddingMarker) {
+              // O usuário clicou em "Salvar"
+              LatLng center = mapController.camera.center;
+              print(
+                  'Latitude: ${center.latitude}, Longitude: ${center.longitude}');
+              // Adicione um Marker na posição atual do centro do mapa
+            }
+          });
         },
+        child: Icon(_isAddingMarker ? Icons.save : Icons.add),
       ),
     );
   }

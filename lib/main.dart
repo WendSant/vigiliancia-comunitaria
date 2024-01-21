@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text('Home'),
               selected: _selectedIndex == 0,
               onTap: () {
-                Navigator.pop(context);
+                LeafletMapWidget();
                 _onItemTapped(0);
               },
             ),
