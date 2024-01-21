@@ -68,6 +68,7 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
 
   void _showModal(LatLng point) {
     TextEditingController descriptionController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -79,7 +80,7 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Relate sua ocorrencia',
+                  'Relate sua ocorrência',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 TextField(
@@ -118,12 +119,9 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
                       );
                     } else {
                       print('Descrição: ${descriptionController.text}');
-                      // Adicione um Marker na posição atual do centro do mapa
 
-                      // Gere um número de protocolo aleatório
                       int protocolNumber = Random().nextInt(1000000);
 
-                      // Mostre o AlertDialog
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -198,25 +196,46 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
           ),
           if (_isAddingMarker)
             Center(
-              child: Icon(Icons.location_on, size: 50),
+              child: Icon(Icons.location_on, size: 50, color: Colors.red),
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _isAddingMarker = !_isAddingMarker;
-            if (!_isAddingMarker) {
-              // O usuário clicou em "Salvar"
-              LatLng center = mapController.camera.center;
-              _showModal(center);
-              print(
-                  'Latitude: ${center.latitude}, Longitude: ${center.longitude}');
-              // Adicione um Marker na posição atual do centro do mapa
-            }
-          });
-        },
-        child: Icon(_isAddingMarker ? Icons.save : Icons.add),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              mapController.move(
+                  mapController.camera.center, mapController.zoom + 1);
+            },
+            child: Icon(Icons.zoom_in),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton(
+            onPressed: () {
+              mapController.move(
+                  mapController.camera.center, mapController.zoom - 1);
+            },
+            child: Icon(Icons.zoom_out),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton(
+            onPressed: () {
+              setState(() {
+                _isAddingMarker = !_isAddingMarker;
+                if (!_isAddingMarker) {
+                  // O usuário clicou em "Salvar"
+                  LatLng center = mapController.camera.center;
+                  _showModal(center);
+                  print(
+                      'Latitude: ${center.latitude}, Longitude: ${center.longitude}');
+                  // Adicione um Marker na posição atual do centro do mapa
+                }
+              });
+            },
+            child: Icon(_isAddingMarker ? Icons.save : Icons.add),
+          ),
+        ],
       ),
     );
   }
