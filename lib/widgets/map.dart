@@ -1,8 +1,12 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart'
     show FlutterMap, MapController, MapOptions, Marker, MarkerLayer, TileLayer;
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
 import 'package:flutter/foundation.dart'; // for FutureBuilder
@@ -26,10 +30,20 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
     _userLocationFuture = _getUserLocation();
   }
 
+  XFile? _image;
+
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _image = image;
+    });
+  }
+
   Future<void> _getUserLocation() async {
     bool serviceEnabled;
     loc.PermissionStatus permissionGranted;
-    print(_currentPosition);
     serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await _location.requestService();
@@ -53,23 +67,92 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
   }
 
   void _showModal(LatLng point) {
+    TextEditingController descriptionController = TextEditingController();
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Latitude: ${point.latitude}'),
-              Text('Longitude: ${point.longitude}'),
-              // Adicione mais campos ou widgets aqui
-            ],
+        return SingleChildScrollView(
+          child: Container(
+            width: 400,
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Relate sua ocorrencia',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                TextField(
+                  minLines: 7,
+                  maxLines: 7,
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Descrição da ocorrência',
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: Text('Anexar foto'),
+                ),
+                if (_image != null) Image.file(File(_image!.path)),
+                ElevatedButton(
+                  onPressed: () {
+                    if (descriptionController.text.isEmpty ||
+                        descriptionController.text.trim().isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Erro'),
+                            content: Text('Descrição é obrigatória!'),
+                            actions: [
+                              TextButton(
+                                child: Text('OK'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      print('Descrição: ${descriptionController.text}');
+                      // Adicione um Marker na posição atual do centro do mapa
+
+                      // Gere um número de protocolo aleatório
+                      int protocolNumber = Random().nextInt(1000000);
+
+                      // Mostre o AlertDialog
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Ocorrência Recebida'),
+                            content: Text(
+                                'Sua ocorrência foi recebida com o número de protocolo $protocolNumber.'),
+                            actions: [
+                              TextButton(
+                                child: Text('OK'),
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .popUntil((route) => route.isFirst);
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  },
+                  child: Text('Salvar'),
+                ),
+              ],
+            ),
           ),
         );
       },
     ).then((_) {
-      // Quando o modal é fechado, remova o marcador temporário
       setState(() {
         _tempMarker = null;
       });
@@ -126,6 +209,7 @@ class _LeafletMapWidgetState extends State<LeafletMapWidget> {
             if (!_isAddingMarker) {
               // O usuário clicou em "Salvar"
               LatLng center = mapController.camera.center;
+              _showModal(center);
               print(
                   'Latitude: ${center.latitude}, Longitude: ${center.longitude}');
               // Adicione um Marker na posição atual do centro do mapa
